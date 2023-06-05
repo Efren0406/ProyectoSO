@@ -1,0 +1,12 @@
+11
+1,Diodo LED,Diodo LED color Rojo,5
+2,Transistor,Transistor 2N222,10
+3,Diodo Zener,Diodo Zener de 1.5V,10
+3,Diodo Zener,Diodo Zener de 1.5V,10
+3,Diodo Zener,Diodo Zener de 1.5V,10
+3,Diodo Zener,Diodo Zener de 1.5V,10
+3,Diodo Zener,Diodo Zener de 1.5V,10
+3,Diodo Zener,Diodo Zener de 1.5V,10
+3,Diodo Zener,Diodo Zener de 1.5V,10
+3,Diodo Zener,Diodo Zener de 1.5V,10
+3,Diodo Zener,Diodo Zener de 1.5V,10
