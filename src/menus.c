@@ -7,6 +7,7 @@
 #include "../lib/const.h"
 #include "../lib/data_base.h"
 #include "../lib/encryption.h"
+#include "../lib/utils.h"
 
 User current_user;
 
@@ -14,73 +15,27 @@ int login(WINDOW *window){
     char input_User_name[USER_SIZE];
     char input_Password[PASSWORD_SIZE];
     int login_check = 0;
-    int ch;
-    int i;
 
     while(1){
         wattron(window, COLOR_PAIR(2));
         mvwprintw(window, 5, (COLS - 47) / 2, "=============== Iniciar Sesion ================");
         wattron(window, COLOR_PAIR(1));
         mvwprintw(window, 7, (COLS - 40) / 2, "Ingrese el nombre de usuario: ");
-        mvwprintw(window, 9, (COLS - 40) / 2, "Ingrese la contrase%ca: ", 164);
+        mvwprintw(window, 9, (COLS - 40) / 2, "Ingrese la contraseña: ");
         wmove(window, 7, (COLS + 20) / 2);
         wrefresh(window);
 
         wattron(window, COLOR_PAIR(5));
-
-        i = 0;
-
-        while ((ch = wgetch(window)) != '\n') {
-            if (ch != 127 && ch != 8) {
-                if(i < USER_SIZE){
-                    wattron(window, COLOR_PAIR(5));
-                    input_User_name[i] = ch;
-                }else{
-                    wattron(window, COLOR_PAIR(3));
-                }
-                i++;
-                waddch(window, ch);
-            } else if ((ch == 127 || ch == 8) && i > 0) {
-                i--;
-                mvwaddch(window, 7, (COLS + 20) / 2 + i, ' ');
-                wmove(window, 7, (COLS + 20) / 2 + i);
-            }
-            wrefresh(window);
-        }
-
-
-        input_User_name[i] = '\0';
-
+        char_input(window, input_User_name, USER_SIZE, 0);
         wattron(window, COLOR_PAIR(4));
-        mvwprintw(window, 7, (COLS + 20) / 2, "%s", input_User_name);
-        wattron(window, COLOR_PAIR(5));
-        wmove(window, 9, (COLS + 8) / 2);
 
+        mvwprintw(window, 7, (COLS + 20) / 2, "%s", input_User_name);
+        wmove(window, 9, (COLS + 8) / 2);
         wrefresh(window);
 
-        i = 0;
-
-        while ((ch = wgetch(window)) != '\n') {
-            if (ch != 127 && ch != 8) {
-                if(i < PASSWORD_SIZE){
-                    wattron(window, COLOR_PAIR(5));
-                    input_Password[i] = ch;
-                }else{
-                    wattron(window, COLOR_PAIR(3));
-                }
-                i++;
-                waddch(window, '*');
-            } else if ((ch == 127 || ch == 8) && i > 0) {
-                i--;
-                mvwaddch(window, 9, (COLS + 8) / 2 + i, ' ');
-                wmove(window, 9, (COLS + 8) / 2 + i - 1);
-            }
-            wrefresh(window);
-        }
-
-        wattroff(window, COLOR_PAIR(4));
-
-        input_Password[i] = '\0';
+        wattron(window, COLOR_PAIR(5));
+        char_input(window, input_Password, PASSWORD_SIZE, '*');
+        wattron(window, COLOR_PAIR(4));
 
         encrypt_password(input_Password);
 
@@ -98,7 +53,7 @@ int login(WINDOW *window){
     }
 }
 
-int menu(){
+int menu(WINDOW* window){
     char option;
     int first = 1, interval = 10;
     int total = get_product_count();
@@ -107,8 +62,7 @@ int menu(){
     while(1){
         Product* list_product = (Product*)malloc(sizeof(Product));
 
-        system("clear");
-        printf("=============== Bienvenido %s ===============\n", current_user.user_name);
+        mvwprintw(window, 1, 1, "=============== Bienvenido %s ===============\n", current_user.user_name);
         printf("Articulos %d - %d / %d\n", first, first + interval - 1, total);
 
         for(int i = 0; i < interval; i++){
@@ -147,7 +101,7 @@ int menu(){
     }
 }
 
-int cart(){
+int cart(WINDOW* window){
     int total;
     int total_cart_amount;
     int ID, quantity;
@@ -204,11 +158,7 @@ int cart(){
     }
 }
 
-int purchase(){
-    return 0;
-}
-
-int admin_menu(){
+int admin_menu(WINDOW* window){
     int access = 0;
     int ID, price;
     char product_name[20], description[100];

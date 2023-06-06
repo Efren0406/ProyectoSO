@@ -4,9 +4,12 @@
 #include <ncurses.h>
 
 int login(WINDOW* window);
-int menu();
-int cart();
-int purchase();
-int admin_menu();
+int menu(WINDOW* window);
+int cart(WINDOW* window);
+
+// Pantalla de pago pendiente
+// int purchase(WINDOW* window);
+
+int admin_menu(WINDOW* window);
 
 #endif

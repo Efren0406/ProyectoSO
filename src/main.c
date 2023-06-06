@@ -32,15 +32,16 @@ int main() {
 
     while(1){
         if(state == -1){
-            state = admin_menu();
+            state = admin_menu(window);
         }else if(state == 0)
             state = login(window);
         else if(state == 1)
-            state = menu();
+            state = menu(window);
         else if(state == 2)
-            state = cart();
-        else if(state == 3)
-            state = purchase();
+            state = cart(window);
+        // Funcionalidad pendiente de confirmar
+        // else if(state == 3)
+        //     state = purchase();
     }
 
     return 0;
