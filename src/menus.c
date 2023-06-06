@@ -10,9 +10,9 @@
 User current_user;
 
 int login() {
-  char input_User_name[USER_SIZE];
-  char input_Password[PASSWORD_SIZE];
-  int login_check = 0;
+  char input_User_name[USER_SIZE + 1];
+  char input_Password[PASSWORD_SIZE + 1];
+  int login_check = 0, c;
 
   system("clear");
 
@@ -20,12 +20,25 @@ int login() {
     printf("=============== Iniciar Sesion ================\n");
     printf("Ingrese el nombre de usuario: ");
     scanf("%s", input_User_name);
+
+    if(strlen(input_User_name) > USER_SIZE){
+      while((c = getchar()) != '\n' && c != EOF);
+      system("clear");
+      printf("El nombre de usuario no debe superar los 20 caracteres!\n\n");
+      continue;
+    }
+
     printf("Ingrese la contrase%ca: ", 164);
     scanf("%s", input_Password);
 
-    encrypt_password(input_Password);
+    if(strlen(input_Password) > PASSWORD_SIZE){
+      while((c = getchar()) != '\n' && c != EOF);
+      system("clear");
+      printf("La contraseña no debe superar los 20 caracteres!\n\n");	
+      continue;
+    }
 
-    getchar();
+    encrypt_password(input_Password);
 
     login_check = get_user(&current_user, input_User_name, input_Password);
 
@@ -234,9 +247,22 @@ int admin_menu() {
       printf("Ingrese el nombre del Usuario [%d caracteres max]: ", USER_SIZE);
       scanf("%s", user_name);
       getchar();
+
+      if(strlen(user_name) > USER_SIZE){
+        system("clear");
+        printf("El nombre de usuario no debe superar los 20 caracteres!\n\n");
+        continue;
+      }
+
       printf("Ingrese la contrase%ca [%d caracteres max]: ", 164, PASSWORD_SIZE);
       scanf("%s", password);
       getchar();
+
+      if(strlen(password) > USER_SIZE){
+        system("clear");
+        printf("La contraseña no debe superar los 20 caracteres!\n\n");
+        continue;
+      }
 
       encrypt_password(password);
 
@@ -265,6 +291,12 @@ int admin_menu() {
       printf("Ingrese el nombre del usuario: ");
       scanf("%s", user_name);
       getchar();
+
+      if(strlen(user_name) > USER_SIZE){
+        system("clear");
+        printf("El nombre de usuario no debe superar los 20 caracteres!\n\n");
+        continue;
+      }
 
       delete_cart(user_name);
       add_user(user_name, "delete");
