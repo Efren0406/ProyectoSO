@@ -1,7 +1,9 @@
 #ifndef MENUS_H_
 #define MENUS_H_
 
-int login();
+#include <ncurses.h>
+
+int login(WINDOW* window);
 int menu();
 int cart();
 int purchase();

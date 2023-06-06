@@ -3,6 +3,9 @@
 
 #define VALID_PTR(x) ((x) == NULL)
 
+#define WINDOW_HEIGHT LINES - 5
+#define WINDOW_WIDTH COLS - 5
+
 #define USER_SIZE   20
 #define PASSWORD_SIZE   20
 

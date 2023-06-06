@@ -94,8 +94,8 @@ void add_cart_item(const int ID_cart, const int Item_ID, const int quantity){
 
         fwrite(&aux, sizeof(cart_Item), 1, temp);
     }
-    
-    if(!found && quantity > 0){
+
+    if(!found){
         aux.cart_ID = ID_cart;
         aux.product_ID = Item_ID;
         aux.quantity = quantity;
@@ -230,7 +230,7 @@ void add_user(const char* name, const char* password){
         fwrite(&aux, sizeof(User), 1, temp);
     }
 
-    if(!found && !deleted && strcmp(password, "delete")){
+    if(!found && strcmp(aux.user_name, name)){
         strcpy(aux.user_name, name);
         strcpy(aux.password, password);
         aux.ID_cart += 1;
