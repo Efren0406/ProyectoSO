@@ -48,15 +48,13 @@ int menu() {
   while (1) {
     Product *list_product = (Product *)malloc(sizeof(Product));
 
-    printf("=============== Bienvenido %s ===============\n",
-           current_user.user_name);
+    printf("=============== Bienvenido %s ===============\n", current_user.user_name);
     printf("Articulos %d - %d / %d\n", first, first + interval - 1, total);
 
     for (int i = 0; i < interval; i++) {
       get_product(list_product, i + first);
       if (i + first <= total)
-        printf("%d  %s  %s  $%d\n", list_product->ID, list_product->name,
-               list_product->description, list_product->price);
+        printf("%d  %s  %s  $%d\n", list_product->ID, list_product->name, list_product->description, list_product->price);
     }
 
     printf("\n1. Agregar al carrito\n");
@@ -77,12 +75,17 @@ int menu() {
       getchar();
 
       get_product(list_product, ID);
-
-      if (list_product->ID == ID) {
-        add_cart_item(current_user.ID_cart, ID, quantity);
-      } else {
+      if(ID > 0 && quantity > 0) {
+        if (list_product->ID == ID) {
+          system("clear");
+          add_cart_item(current_user.ID_cart, ID, quantity);
+        } else {
+          system("clear");
+          printf("\nEl producto que se indico no existe, intentar de nuevo!\n");
+        }
+      }else{
         system("clear");
-        printf("\nEl producto que se indico no existe, intentar de nuevo!\n");
+        printf("El ID y la cantidad deben ser valores positivos!\n\n");
       }
     } else if (option == '2') {
       system("clear");
@@ -111,8 +114,7 @@ int cart() {
 
   while (1) {
     total = get_cart_count(current_user.ID_cart);
-    printf("=============== Tu carrito %s ===============\n",
-           current_user.user_name);
+    printf("=============== Tu carrito %s ===============\n", current_user.user_name);
 
     if (total > 0) {
       Product *cart_item = (Product *)malloc(sizeof(Product));
@@ -122,8 +124,7 @@ int cart() {
         get_cart_item(current_user.ID_cart, &ID, &quantity, i);
         get_product(cart_item, ID);
         total_cart_amount += cart_item->price * quantity;
-        printf("%d  %s  $%d | %d pzs.\n", cart_item->ID, cart_item->name,
-               cart_item->price, quantity);
+        printf("%d  %s  $%d | %d pzs.\n", cart_item->ID, cart_item->name, cart_item->price, quantity);
       }
 
       printf("\n\t\tTotal: $%d\n", total_cart_amount);
@@ -139,12 +140,19 @@ int cart() {
         printf("\nIndique la cantidad a eliminar: ");
         scanf("%d", &quantity);
         getchar();
+
         get_product(cart_item, ID);
         system("clear");
-        if (cart_item->ID == ID) {
-          add_cart_item(current_user.ID_cart, ID, -quantity);
-        } else {
-          printf("\nEl producto que indico no existe, intentar de nuevo!\n");
+
+        if(ID > 0 && quantity > 0){
+          if (cart_item->ID == ID) {
+            add_cart_item(current_user.ID_cart, ID, -quantity);
+          } else {
+            printf("\nEl producto que indico no existe, intentar de nuevo!\n");
+          }
+        }else{
+          system("clear");
+          printf("El ID y la cantidad deben ser valores positivos!\n\n");
         }
       } else if (option == '2') {
         getchar();
@@ -166,17 +174,14 @@ int cart() {
   }
 }
 
-int purchase() { return 0; }
-
 int admin_menu() {
   int access = 0;
   int ID, price;
-  char product_name[20], description[100];
+  char product_name[21], description[101];
   char user_name[USER_SIZE], password[PASSWORD_SIZE];
   char option;
 
   while (1) {
-    system("clear");
     printf("=============== Panel de Administrador ===============\n");
     printf("Opciones: \n\n");
     printf("1. Agregar producto\n");
@@ -194,41 +199,78 @@ int admin_menu() {
       printf("Ingrese el precio del producto: ");
       scanf("%d", &price);
       getchar();
+
+      if(ID < 0 || price < 0){
+        system("clear");
+        printf("El ID y el precio deben ser valores positivos!\n\n");
+        continue;
+      }
+
       printf("Ingrese el nombre del producto [20 caracteres max]: ");
       scanf("%[^\n]*c", product_name);
       getchar();
+
+      if(strlen(product_name) > USER_SIZE){
+        system("clear");
+        printf("El nombre del producto no debe ser mayor a 20 caracteres!\n\n");
+        continue;
+      }
+
       printf("Ingrese la descripcion del producto [100 caracteres max]: ");
       scanf("%[^\n]*c", description);
       getchar();
 
+      if(strlen(product_name) > USER_SIZE){
+        system("clear");
+        printf("La descripcion del producto no debe superar los 100 caracteres!\n\n");
+        continue;
+      }
+
       add_product(ID, product_name, description, price);
+      system("clear");
+      printf("Producto agregado exitosamente a la base de datos!\n\n");
     } else if (option == '2') {
       system("clear");
       printf("Ingrese el nombre del Usuario [%d caracteres max]: ", USER_SIZE);
       scanf("%s", user_name);
       getchar();
-      printf("Ingrese la contrase%ca [%d caracteres max]: ", 164,
-             PASSWORD_SIZE);
+      printf("Ingrese la contrase%ca [%d caracteres max]: ", 164, PASSWORD_SIZE);
       scanf("%s", password);
       getchar();
 
       encrypt_password(password);
 
       add_user(user_name, password);
+
+      system("clear");
+      printf("Usuario agregado exitosamente a la base de datos!\n\n");
     } else if (option == '3') {
       system("clear");
       printf("Ingrese el ID del producto: ");
       scanf("%d", &ID);
       getchar();
 
+      if(ID < 0){
+        system("clear");
+        printf("El ID debe ser un valor positivo!\n\n");
+        continue;
+      }
+
       add_product(-ID, "", "", 0);
+
+      system("clear");
+      printf("Producto eliminado exitosamente!\n\n");
     } else if (option == '4') {
       system("clear");
       printf("Ingrese el nombre del usuario: ");
       scanf("%s", user_name);
+      getchar();
 
       delete_cart(user_name);
       add_user(user_name, "delete");
+
+      system("clear");
+      printf("Usuario eliminado exitosamente!\n\n");
     } else if (option == '5')
       return 0;
     else
