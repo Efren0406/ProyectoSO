@@ -1,5 +1,5 @@
+#include <stdlib.h>
 #include "../lib/menus.h"
-#include "stdlib.h"
 
 int main() {    
     int state = 0;
