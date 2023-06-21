@@ -29,10 +29,10 @@ void userListener(void* userNum){
 
     SEM = sem_open(SEMname, O_CREAT, 0600, 0);
 
-    requestSHMID = shmget(SHARED_MEMORY_KEY, 2, IPC_CREAT | 0666);
-    userSHMID = shmget(SHARED_MEMORY_KEY, sizeof(User), IPC_CREAT | 0666);
-    productSHMID = shmget(SHARED_MEMORY_KEY, sizeof(Product), IPC_CREAT | 0666);
-    itemSHMID = shmget(SHARED_MEMORY_KEY, sizeof(cart_Item), IPC_CREAT | 0666);
+    requestSHMID = shmget(SHARED_MEMORY_KEY1, 2, IPC_CREAT | 0666);
+    userSHMID = shmget(SHARED_MEMORY_KEY2, sizeof(User), IPC_CREAT | 0666);
+    productSHMID = shmget(SHARED_MEMORY_KEY3, sizeof(Product), IPC_CREAT | 0666);
+    itemSHMID = shmget(SHARED_MEMORY_KEY4, sizeof(cart_Item), IPC_CREAT | 0666);
 
     request = (char*)shmat(requestSHMID, NULL, 0);
     currentUser = (User*)shmat(userSHMID, NULL, 0);

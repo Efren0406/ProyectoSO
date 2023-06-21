@@ -1,8 +1,15 @@
 #include <stdlib.h>
+#include <fcntl.h>
+#include <semaphore.h>
+
 #include "../lib/menus.h"
+#include "../lib/server.h"
 
 int main() {    
     int state = 0;
+    sem_t *SEM = sem_open(SERVER_SEMAPHORE_NAME, O_CREAT, 0600, 0);
+
+    sem_post(SEM);
 
     while(1){
         if(state == -1){

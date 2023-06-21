@@ -1,13 +1,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <semaphore.h>
+#include <fcntl.h>
 
 #include "../lib/const.h"
 #include "../lib/data_base.h"
 #include "../lib/encryption.h"
 #include "../lib/menus.h"
 
-User current_user;
+char *request, *SEMname;
+User *currentUser;
+Product *currentProduct;
+cart_Item *currentItem;
+
+sem_t *SEM;
+
+void initSEM(){
+
+}
 
 int login() {
   char input_User_name[USER_SIZE + 1];
