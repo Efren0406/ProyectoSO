@@ -9,34 +9,34 @@
 #include "../lib/data_base.h"
 #include "../lib/server.h"
 
-int openFile(const char *nombretxt){
-  FILE *fp= fopen(nombretxt, "r");
-    if(fp==NULL){
-      perror("fopen");
-      exit(1);   
-    }
-      return fileno(fp);
+FILE* requestDB(const char *nombretxt){
+  int fileSHMID, filenameSHMID;
+  FILE* fp;
+  char* DB_name;
+  sem_t* SEM;
+
+  SEM = sem_open(CLIENT_SEMAPHORE_NAME, 0600, 0);
+
+  filenameSHMID = shmget(FILENAME_MEMORY_KEY, sizeof(char), IPC_CREAT | 0666);
+  fileSHMID = shmget(FILE_MEMORY_KEY, sizeof(FILE), IPC_CREAT | 0666);
+
+  DB_name = (char*)shmat(filenameSHMID, NULL, 0);
+  fp = (FILE*)shmat(fileSHMID, NULL, 0);
+
+  strcpy(DB_name, nombretxt);
+
+  sem_post(SEM);
+  
+  return fp;
 }
 
-  //  FILE *fp = fopen("../database/users.txt", "r");
-
 int get_user(User* current_user, const char* user_name, const char* password){
-
-    int shmid;
-    int *shared_memmory;
-    key_t key;
-    const char *nombre= "../database/products.txt";
-    int file_descriptor ;
-    FILE* fp;
-
-    file_descriptor = openFile("nombre");
-
-    shmid = shmget(FILENAME_MEMORY_KEY, FILE_MEMORY_KEY, 0666);    
+    FILE* fp = requestDB("../database/users.txt");
   
-    // if(VALID_PTR(fp)){
-    //     fprintf(stderr, "Error while opening user database!\n");
-    //     exit(1);
-    // }
+    if(VALID_PTR(fp)){
+         fprintf(stderr, "Error while opening user database!\n");
+         exit(1);
+    }
 
     while(fread(current_user, sizeof(User), 1, fp)){
         if(!strcmp(current_user->user_name, user_name) && !strcmp(current_user->password, password)){
@@ -54,7 +54,7 @@ int get_user(User* current_user, const char* user_name, const char* password){
 }
 
 Product* get_product(Product* current_product, int ID){	
-	FILE *fp = fopen("../database/products.txt", "r");
+	FILE* fp = requestDB("../database/products.txt");
 
     if(VALID_PTR(fp)){
         fprintf(stderr, "Error while opening product database!\n");
@@ -70,7 +70,7 @@ Product* get_product(Product* current_product, int ID){
 };
 
 int get_product_count(){
-    FILE *fp = fopen("../database/products.txt", "r");
+    FILE* fp = requestDB("../database/products.txt");
     Product aux;
     int count = 0;
 
@@ -84,7 +84,7 @@ int get_product_count(){
 }
 
 int get_cart_count(const int ID_cart){
-    FILE *fp = fopen("../database/cart.txt", "r");
+    FILE* fp = requestDB("../database/cart.txt");
 
     if(VALID_PTR(fp)){
         fprintf(stderr, "Error while opening cart database!\n");
@@ -104,7 +104,7 @@ int get_cart_count(const int ID_cart){
 }
 
 void add_cart_item(const int ID_cart, const int Item_ID, const int quantity){
-    FILE *fp = fopen("../database/cart.txt", "r");
+    FILE* fp = requestDB("../database/cart.txt");
     FILE *temp = fopen("../database/temp.txt", "a");
     cart_Item aux;
     int found = 0;
@@ -137,7 +137,7 @@ void add_cart_item(const int ID_cart, const int Item_ID, const int quantity){
 }
 
 int get_user_ID_cart(const char *user_name){
-    FILE *fp = fopen("../database/users.txt", "r");
+    FILE* fp = requestDB("../database/users.txt");
     User current_user;
 
     while(fread(&current_user, sizeof(User), 1, fp)){
@@ -152,7 +152,7 @@ int get_user_ID_cart(const char *user_name){
 
 void delete_cart(const char* name){
     int ID_cart = get_user_ID_cart(name);
-    FILE *fp = fopen("../database/cart.txt", "r");
+    FILE* fp = requestDB("../database/cart.txt");
     FILE *temp = fopen("../database/temp.txt", "a");
     cart_Item aux;
 
@@ -192,7 +192,7 @@ int* get_cart_item(const int cart_ID, int* item_ID, int* quantity, int index){
 }	
 
 void add_product(const int ID, const char* name, const char* description, const int price){
-    FILE *fp = fopen("../database/products.txt", "r");
+    FILE* fp = requestDB("../database/products.txt");
     FILE *temp = fopen("../database/temp.txt", "a");
     Product aux;
     int found = 0;
@@ -233,7 +233,7 @@ void add_product(const int ID, const char* name, const char* description, const 
 }
 
 void add_user(const char* name, const char* password){
-    FILE *fp = fopen("../database/users.txt", "r");
+    FILE* fp = requestDB("../database/users.txt");
     FILE *temp = fopen("../database/temp.txt", "a");
     User aux;
     int found = 0, deleted = 0;

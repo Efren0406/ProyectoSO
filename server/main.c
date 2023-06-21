@@ -23,9 +23,14 @@ void interruptionHandler(int sig){
     c = getchar();
 
     if(c == 'y' || c == 'Y')
-        shutDownFlag = 1;
-    else
+        exit(1);
+    else{
+        system("clear");
+        printf("\nServidor reanudado!\n");
+        printf("Esperando usuarios...\n\n");
+
         signal(SIGINT, interruptionHandler);
+    }
 
     getchar();
 }
@@ -38,9 +43,8 @@ void main(){
 
     pthread_attr_t atributes;
     pthread_t ID[MAX_USER_COUNT];
-    int fileSHMID, filenameSHMID;
+    int fileSHMID, i = 0, filenameSHMID;
     sem_t *SEM;    
-
     pthread_attr_init(&atributes);
     pthread_attr_setdetachstate(&atributes, PTHREAD_CREATE_DETACHED);    
 
@@ -58,7 +62,7 @@ void main(){
         printf("Nuevo usuario contectado!\n");
         printf("Acceso otorgado\n");        
 
-        pthread_create(&ID[i], &atributes, (void*)userListener, NULL);        
+        pthread_create(&ID[i], &atributes, (void*)userListener, NULL);             i++;
     } while(!shutDownFlag);
 
     sem_destroy(SEM);

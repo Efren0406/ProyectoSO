@@ -9,18 +9,7 @@
 #include "../lib/encryption.h"
 #include "../lib/menus.h"
 
-char *request, *SEMname;
-User *currentUser;
-Product *currentProduct;
-cart_Item *currentItem;
-
-sem_t *SEM;
-
 User current_user;
-
-void initSEM(){
-
-}
 
 int login() {
   char input_User_name[USER_SIZE + 1];
