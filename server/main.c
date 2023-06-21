@@ -1,3 +1,5 @@
+#include <sys/ipc.h>
+#include <sys/shm.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -36,14 +38,14 @@ void main(){
 
     pthread_attr_t atributes;
     pthread_t ID[MAX_USER_COUNT];
-    sem_t *SEM;
-
-    int i = 0;
-
-    int *userNum;
+    int fileSHMID, filenameSHMID;
+    sem_t *SEM;    
 
     pthread_attr_init(&atributes);
-    pthread_attr_setdetachstate(&atributes, PTHREAD_CREATE_DETACHED);
+    pthread_attr_setdetachstate(&atributes, PTHREAD_CREATE_DETACHED);    
+
+    fileSHMID = shmget(FILE_MEMORY_KEY, sizeof(FILE), IPC_CREAT | 0666);
+    filenameSHMID = shmget(FILENAME_MEMORY_KEY, sizeof(char), IPC_CREAT | 0666);
 
     SEM = sem_open(SERVER_SEMAPHORE_NAME, O_CREAT, 0600, 0);
 
@@ -54,16 +56,15 @@ void main(){
         sem_wait(SEM);
 
         printf("Nuevo usuario contectado!\n");
-        printf("Acceso otorgado\n");
+        printf("Acceso otorgado\n");        
 
-        userNum = i;
-
-        pthread_create(&ID[i], &atributes, (void*)userListener, (void*)userNum);
-
-        i++;
-    } while(1);
+        pthread_create(&ID[i], &atributes, (void*)userListener, NULL);        
+    } while(!shutDownFlag);
 
     sem_destroy(SEM);
+    
+    shmctl(fileSHMID, IPC_RMID, NULL);
+    shmctl(filenameSHMID, IPC_RMID, NULL);
 
     printf("\nServidor Apagado!!!\n");
     printf("Hasta luego.\n");

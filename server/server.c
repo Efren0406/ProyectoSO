@@ -9,44 +9,31 @@
 #include "../lib/server.h"
 #include "../lib/const.h"
 
-void userListener(void* userNum){
-    int requestSHMID, userSHMID, productSHMID, itemSHMID;
-    int SEMnum;
-    // Estructuras y variables que utiliza el usuario
-    // para acceder a la base de datos
-    // La variable "request", recibe el identificador
-    // de la solicitud que hace el usuario
-    // Ej. Contraseñá, productos de la tienda, productos
-    // del carrito, etc.
-    char *request, *SEMname;
-    User *currentUser;
-    Product *currentProduct;
-    cart_Item *currentItem;
-
+void userListener(void){
     sem_t *SEM;
+    int fileSHMID, filenameSHMID;
+    FILE *database;
+    char *filename;
 
-    sprintf(SEMname, "%d", userNum);
+    SEM = sem_open(CLIENT_SEMAPHORE_NAME, O_CREAT, 0600, 0);
 
-    SEM = sem_open(SEMname, O_CREAT, 0600, 0);
+    fileSHMID = shmget(FILE_MEMORY_KEY, sizeof(FILE), IPC_CREAT | 0666);
+    filenameSHMID = shmget(FILE_MEMORY_KEY, sizeof(char), IPC_CREAT | 0666);
 
-    requestSHMID = shmget(SHARED_MEMORY_KEY1, 2, IPC_CREAT | 0666);
-    userSHMID = shmget(SHARED_MEMORY_KEY2, sizeof(User), IPC_CREAT | 0666);
-    productSHMID = shmget(SHARED_MEMORY_KEY3, sizeof(Product), IPC_CREAT | 0666);
-    itemSHMID = shmget(SHARED_MEMORY_KEY4, sizeof(cart_Item), IPC_CREAT | 0666);
+    database = (FILE*)shmat(fileSHMID, NULL, 0);
+    filename = (char*)shmat(filenameSHMID, NULL, 0);
+  
+    do{
+      sem_wait(SEM);
+      // sem_post(SEM);
 
-    request = (char*)shmat(requestSHMID, NULL, 0);
-    currentUser = (User*)shmat(userSHMID, NULL, 0);
-    currentProduct = (Product*)shmat(productSHMID, NULL, 0);
-    currentItem = (cart_Item*)shmat(itemSHMID, NULL, 0);
+      database = fopen(filename, "r");
 
-    while(1){
-        // Aqui se implementan el control de las solicitudes de los clientes
-    }
+      printf("El usuario a accedido a la base de datos %s", filename);
+    }while();
 
-    shmdt(currentUser);
-    shmdt(currentProduct);
-    shmdt(currentItem);
-    shmctl(userSHMID, IPC_RMID, NULL);
-    shmctl(productSHMID, IPC_RMID, NULL);
-    shmctl(itemSHMID, IPC_RMID, NULL);
+    shmdt(filename);
+    shmdt(database);
+    shmctl(fileSHMID, IPC_RMID, NULL);
+    shmctl(filenameSHMID, IPC_RMID, NULL);
 }

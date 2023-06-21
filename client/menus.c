@@ -16,6 +16,8 @@ cart_Item *currentItem;
 
 sem_t *SEM;
 
+User current_user;
+
 void initSEM(){
 
 }
@@ -28,24 +30,24 @@ int login() {
   system("clear");
 
   while (1) {
-    printf("=============== Iniciar Sesion ================\n");
-    printf("Ingrese el nombre de usuario: ");
+    printf("\x1b[33m=============== Iniciar Sesion ================\x1b[0m\n");
+    printf("\x1b[34mIngrese el nombre de usuario: \x1b[0m");
     scanf("%s", input_User_name);
 
     if(strlen(input_User_name) > USER_SIZE){
       while((c = getchar()) != '\n' && c != EOF);
       system("clear");
-      printf("El nombre de usuario no debe superar los 20 caracteres!\n\n");
+      printf("\x1b[31mEl nombre de usuario no debe superar los 20 caracteres!\x1b[0m\n\n");
       continue;
     }
 
-    printf("Ingrese la contrase%ca: ", 164);
+    printf("\x1b[34mIngrese la contrase%ca: \x1b[0m", 164);
     scanf("%s", input_Password);
 
     if(strlen(input_Password) > PASSWORD_SIZE){
       while((c = getchar()) != '\n' && c != EOF);
       system("clear");
-      printf("La contraseña no debe superar los 20 caracteres!\n\n");	
+      printf("\x1b[31mLa contraseña no debe superar los 20 caracteres!\x1b[0m\n\n");
       continue;
     }
 
@@ -58,7 +60,7 @@ int login() {
       return login_check;
     } else {
       system("clear");
-      printf("Usuario o contraseña incorrectos D:\n\n");
+      printf("\x1b[32mUsuario o contraseña incorrectos D:\x1b[0m\n\n");
     }
   }
 }

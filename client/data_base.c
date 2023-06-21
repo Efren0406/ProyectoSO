@@ -1,16 +1,42 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <semaphore.h>
+
+#include <sys/ipc.h>
+#include <sys/shm.h>
 
 #include "../lib/data_base.h"
+#include "../lib/server.h"
+
+int openFile(const char *nombretxt){
+  FILE *fp= fopen(nombretxt, "r");
+    if(fp==NULL){
+      perror("fopen");
+      exit(1);   
+    }
+      return fileno(fp);
+}
+
+  //  FILE *fp = fopen("../database/users.txt", "r");
 
 int get_user(User* current_user, const char* user_name, const char* password){
-    FILE *fp = fopen("../database/users.txt", "r");
 
-    if(VALID_PTR(fp)){
-        fprintf(stderr, "Error while opening user database!\n");
-        exit(1);
-    }
+    int shmid;
+    int *shared_memmory;
+    key_t key;
+    const char *nombre= "../database/products.txt";
+    int file_descriptor ;
+    FILE* fp;
+
+    file_descriptor = openFile("nombre");
+
+    shmid = shmget(FILENAME_MEMORY_KEY, FILE_MEMORY_KEY, 0666);    
+  
+    // if(VALID_PTR(fp)){
+    //     fprintf(stderr, "Error while opening user database!\n");
+    //     exit(1);
+    // }
 
     while(fread(current_user, sizeof(User), 1, fp)){
         if(!strcmp(current_user->user_name, user_name) && !strcmp(current_user->password, password)){
