@@ -2,6 +2,7 @@
 #include <semaphore.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <sys/ipc.h>
 #include <sys/shm.h>
@@ -10,29 +11,48 @@
 #include "../lib/server.h"
 
 void userListener(void) {
-  sem_t *SEM;
-  int fileSHMID, filenameSHMID;
-  FILE *database;
-  char *filename;
+  int fileDirSHMID, filenameSHMID, newAccessSHMID, userCountSHMID;
+  int *NEW_ACCESS, *USER_COUNT;
+  char *filename, *fileDir;
 
-  SEM = sem_open(CLIENT_SEMAPHORE_NAME, O_CREAT, 0600, 0);
-
-  fileSHMID = shmget(FILE_MEMORY_KEY, sizeof(FILE), IPC_CREAT | 0666);
+  newAccessSHMID = shmget(NEW_ACCESS_FLAG, sizeof(int), IPC_CREAT | 0666);
+  userCountSHMID = shmget(USER_COUNT_KEY, sizeof(int), IPC_CREAT | 0666);
   filenameSHMID = shmget(FILENAME_MEMORY_KEY, sizeof(char), IPC_CREAT | 0666);
+  fileDirSHMID = shmget(FILE_MEMORY_KEY, sizeof(char), IPC_CREAT | 0666);
 
-  database = (FILE *)shmat(fileSHMID, NULL, 0);
   filename = (char *)shmat(filenameSHMID, NULL, 0);
+  fileDir = (char *)shmat(fileDirSHMID, NULL, 0);
+  NEW_ACCESS = (int*)shmat(newAccessSHMID, NULL, 0);
+  USER_COUNT = (int*)shmat(userCountSHMID, NULL, 0);
+
+  *NEW_ACCESS = 0;
 
   do {
-    sem_wait(SEM);
+    if(*NEW_ACCESS == 1){
+      if(!strcmp(filename, "users"))
+        strcpy(fileDir, "../database/users.txt");
+      else if(!strcmp(filename, "cart"))
+        strcpy(fileDir, "../database/cart.txt");
+      else if(!strcmp(filename, "products"))
+        strcpy(fileDir, "../database/products.txt");
 
-    database = fopen(filename, "r");
+      printf("Solicitud de acceso a: %s, %s\n", fileDir, filename);
 
-    printf("El usuario a accedido a la base de datos %s", filename);
+      *NEW_ACCESS = 0;
+    }else if(*NEW_ACCESS == 2){
+      printf("\nUsuario desconectado!\n");
+      *USER_COUNT -= 1;
+      *NEW_ACCESS = 0;
+
+      if(*USER_COUNT == 0)
+        break;
+    }
   } while (1);
 
   shmdt(filename);
-  shmdt(database);
-  shmctl(fileSHMID, IPC_RMID, NULL);
+  shmdt(fileDir);
+  shmdt(NEW_ACCESS);
+  shmctl(fileDirSHMID, IPC_RMID, NULL);
   shmctl(filenameSHMID, IPC_RMID, NULL);
+  shmctl(newAccessSHMID, IPC_RMID, NULL);
 }

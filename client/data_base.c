@@ -9,30 +9,37 @@
 #include "../lib/data_base.h"
 #include "../lib/server.h"
 
+int *NEW_ACCESS;
+char *DB_name, *DB_dir;
+
+void initSH(){
+    int fileDirSHMID, filenameSHMID, newAccessSHMID;
+
+    filenameSHMID = shmget(FILENAME_MEMORY_KEY, sizeof(char), IPC_CREAT | 0666);
+    fileDirSHMID = shmget(FILE_MEMORY_KEY, sizeof(char), IPC_CREAT | 0666);
+    newAccessSHMID = shmget(NEW_ACCESS_FLAG, sizeof(int), IPC_CREAT | 0666);
+
+    DB_name = (char*)shmat(filenameSHMID, NULL, 0);
+    DB_dir = (char*)shmat(fileDirSHMID, NULL, 0);
+    NEW_ACCESS = (int*)shmat(newAccessSHMID, NULL, 0);
+}
+
 FILE* requestDB(const char *nombretxt){
-  int fileSHMID, filenameSHMID;
-  FILE* fp;
-  char* DB_name;
-  sem_t* SEM;
+    FILE* fp;
 
-    printf("(ya)");
-  SEM = sem_open(CLIENT_SEMAPHORE_NAME, 0600, 0);
+    strcpy(DB_name, nombretxt);
 
-  filenameSHMID = shmget(FILENAME_MEMORY_KEY, sizeof(char), IPC_CREAT | 0666);
-  fileSHMID = shmget(FILE_MEMORY_KEY, sizeof(FILE*), IPC_CREAT | 0666);
+    *NEW_ACCESS = 1;
 
-  DB_name = (char*)shmat(filenameSHMID, NULL, 0);
-  fp = (FILE*)shmat(fileSHMID, NULL, 0);
+    while(*NEW_ACCESS);
 
-  strcpy(DB_name, nombretxt);
+    fp = fopen(DB_dir, "r");
 
-//   sem_post(SEM);
-  
-  return fp;
+    return fp;
 }
 
 int get_user(User* current_user, const char* user_name, const char* password){
-    FILE* fp = requestDB("../database/users.txt");
+    FILE* fp = requestDB("users");
   
     if(VALID_PTR(fp)){
          fprintf(stderr, "Error while opening user database!\n");
@@ -55,7 +62,7 @@ int get_user(User* current_user, const char* user_name, const char* password){
 }
 
 Product* get_product(Product* current_product, int ID){	
-	FILE* fp = requestDB("../database/products.txt");
+	FILE* fp = requestDB("products");
 
     if(VALID_PTR(fp)){
         fprintf(stderr, "Error while opening product database!\n");
@@ -70,8 +77,27 @@ Product* get_product(Product* current_product, int ID){
 	fclose(fp);
 };
 
+Product* get_nth_product(Product* current_product, int i){	
+	FILE* fp = requestDB("products");
+    int index = 0;
+
+    if(VALID_PTR(fp)){
+        fprintf(stderr, "Error while opening product database!\n");
+        exit(1);
+    }
+
+	while(fread(current_product, sizeof(Product), 1, fp)){
+		if(index == i)
+			break;
+
+        index++;
+	}
+
+	fclose(fp);
+};
+
 int get_product_count(){
-    FILE* fp = requestDB("../database/products.txt");
+    FILE* fp = requestDB("products");
     Product aux;
     int count = 0;
 
@@ -85,7 +111,7 @@ int get_product_count(){
 }
 
 int get_cart_count(const int ID_cart){
-    FILE* fp = requestDB("../database/cart.txt");
+    FILE* fp = requestDB("cart");
 
     if(VALID_PTR(fp)){
         fprintf(stderr, "Error while opening cart database!\n");
@@ -105,7 +131,7 @@ int get_cart_count(const int ID_cart){
 }
 
 void add_cart_item(const int ID_cart, const int Item_ID, const int quantity){
-    FILE* fp = requestDB("../database/cart.txt");
+    FILE* fp = requestDB("cart");
     FILE *temp = fopen("../database/temp.txt", "a");
     cart_Item aux;
     int found = 0;
@@ -138,7 +164,7 @@ void add_cart_item(const int ID_cart, const int Item_ID, const int quantity){
 }
 
 int get_user_ID_cart(const char *user_name){
-    FILE* fp = requestDB("../database/users.txt");
+    FILE* fp = requestDB("users");
     User current_user;
 
     while(fread(&current_user, sizeof(User), 1, fp)){
@@ -153,7 +179,7 @@ int get_user_ID_cart(const char *user_name){
 
 void delete_cart(const char* name){
     int ID_cart = get_user_ID_cart(name);
-    FILE* fp = requestDB("../database/cart.txt");
+    FILE* fp = requestDB("cart");
     FILE *temp = fopen("../database/temp.txt", "a");
     cart_Item aux;
 
@@ -173,7 +199,7 @@ void delete_cart(const char* name){
 }
 
 int* get_cart_item(const int cart_ID, int* item_ID, int* quantity, int index){
-    FILE *fp = fopen("../database/cart.txt", "r");
+    FILE *fp = requestDB("cart");
     cart_Item aux;
 
     int i = 0;
@@ -193,7 +219,7 @@ int* get_cart_item(const int cart_ID, int* item_ID, int* quantity, int index){
 }	
 
 void add_product(const int ID, const char* name, const char* description, const int price){
-    FILE* fp = requestDB("../database/products.txt");
+    FILE* fp = requestDB("products");
     FILE *temp = fopen("../database/temp.txt", "a");
     Product aux;
     int found = 0;
@@ -234,7 +260,7 @@ void add_product(const int ID, const char* name, const char* description, const 
 }
 
 void add_user(const char* name, const char* password){
-    FILE* fp = requestDB("../database/users.txt");
+    FILE* fp = requestDB("users");
     FILE *temp = fopen("../database/temp.txt", "a");
     User aux;
     int found = 0, deleted = 0;

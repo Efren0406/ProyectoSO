@@ -1,7 +1,7 @@
 #ifndef MENUS_H_
 #define MENUS_H_
 
-void initSEM();
+void serverListener(void);
 
 int login();
 int menu();

@@ -11,14 +11,12 @@
 
 #include "../lib/server.h"
 
-int shutDownFlag = 0;
-
 void interruptionHandler(int sig){
     char c;
 
     signal(sig, SIG_IGN);
 
-    printf("\nServidor en Pausa\n");
+    printf("\n\nServidor en Pausa\n");
     printf("Todas los usuarios perderan conexión!!!\n");
     printf("Esta seguro de apagar el servidor? [y / n]\n");
 
@@ -27,6 +25,17 @@ void interruptionHandler(int sig){
     if(c == 'y' || c == 'Y')
         exit(1);
     else{
+        int newUserSHMID, userCountSHMID, adminUpdateSHMID;
+        int *NEW_USER, *USER_COUNT, *ADMIN_UPDATE;
+
+        newUserSHMID = shmget(NEW_USER_FLAG, sizeof(int), IPC_CREAT | 0666);
+        userCountSHMID = shmget(USER_COUNT_KEY, sizeof(int), IPC_CREAT | 0666);
+        adminUpdateSHMID = shmget(ADMIN_UPDATE_KEY, sizeof(int), IPC_CREAT | 0666);
+
+        shmctl(newUserSHMID, IPC_RMID, NULL);
+        shmctl(userCountSHMID, IPC_RMID, NULL);
+        shmctl(adminUpdateSHMID, IPC_RMID, NULL);
+
         system("clear");
         printf("\nServidor reanudado!\n");
         printf("Esperando usuarios...\n\n");
@@ -43,34 +52,56 @@ void main(){
     system("clear");
     printf("Iniciando Servidor...\n");
 
-    int newUserSHMID, fileSHMID, filenameSHMID;
-    int *NEW_USER;
-    sem_t *SEM;    
+    int newUserSHMID, userCountSHMID, adminUpdateSHMID;
+    int *NEW_USER, *USER_COUNT, *ADMIN_UPDATE;
+    int firstFlag = 0;
+    pthread_t threadid;
 
     newUserSHMID = shmget(NEW_USER_FLAG, sizeof(int), IPC_CREAT | 0666);
-    fileSHMID = shmget(FILE_MEMORY_KEY, sizeof(FILE*), IPC_CREAT | 0666);
-    filenameSHMID = shmget(FILENAME_MEMORY_KEY, sizeof(char), IPC_CREAT | 0666);
+    userCountSHMID = shmget(USER_COUNT_KEY, sizeof(int), IPC_CREAT | 0666);
+    adminUpdateSHMID = shmget(ADMIN_UPDATE_KEY, sizeof(int), IPC_CREAT | 0666);
 
     NEW_USER = (int*)shmat(newUserSHMID, NULL, 0);
+    USER_COUNT = (int*)shmat(userCountSHMID, NULL, 0);
+    ADMIN_UPDATE = (int*)shmat(adminUpdateSHMID, NULL, 0);
 
     *NEW_USER = 0;
+    *USER_COUNT = 0;
+    *ADMIN_UPDATE = 0;
 
     printf("Servidor Listo!...\n");
+    printf("ID del servidor %d\n", getpid());
     printf("Esperando Usuarios...\n");
 
     do{
         if(*NEW_USER){
+            firstFlag = 1;
+
             printf("\nNuevo usuario contectado!\n");
             printf("Acceso otorgado\n");        
+
+            if(*USER_COUNT == 0)
+                pthread_create(&threadid, NULL, (void*)userListener, NULL);
+
             *NEW_USER = 0;
+            *USER_COUNT += 1;
+
+            printf("\nNúmero de usuarios conectados: %d\n", *USER_COUNT);
+        }
+
+        if(*USER_COUNT == 0 && firstFlag){
+            system("clear");
+            printf("Todos los usuarios desconectados!\n");
+            printf("Esperando nuevas conexiones...\n");
+
+            firstFlag = 0;
+        }
+
+        if(*ADMIN_UPDATE == -1){
+            printf("\nBase de datos actualizada por el administrador!\n\n");
+            printf("Mostrando actualizaciones a usuarios...\n");
+
+            *ADMIN_UPDATE = *USER_COUNT - 1;
         }
     } while(1);
-
-    sem_destroy(SEM);
-    
-    shmctl(fileSHMID, IPC_RMID, NULL);
-    shmctl(filenameSHMID, IPC_RMID, NULL);
-
-    printf("\nServidor Apagado!!!\n");
-    printf("Hasta luego.\n");
 }

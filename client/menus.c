@@ -3,18 +3,48 @@
 #include <string.h>
 #include <semaphore.h>
 #include <fcntl.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
 
 #include "../lib/const.h"
 #include "../lib/data_base.h"
 #include "../lib/encryption.h"
 #include "../lib/menus.h"
+#include "../lib/server.h"
 
 User current_user;
+int adminFlag;
+
+void serverListener(void){
+  int myFlag = 1, adminUpdateSHMID;
+  int *ADMIN_UPDATE;
+  char c;
+
+  adminUpdateSHMID = shmget(ADMIN_UPDATE_KEY, sizeof(int), IPC_CREAT | 0666);
+  ADMIN_UPDATE = (int*)shmat(adminUpdateSHMID, NULL, 0);
+
+  while(1){
+    if(*ADMIN_UPDATE > 0 && myFlag && !adminFlag){
+      printf("\n\nEl administrador actualizo la base de datos!\n");
+      printf("Puede que lo mostrado en pantalla no este actualizado!\n");
+      printf("Si se encuentra en el menu elija la opcion 3 o 4\n");
+
+      *ADMIN_UPDATE -= 1;
+      myFlag = 0;
+    }
+
+    if(*ADMIN_UPDATE == 0){
+      myFlag = 1;
+    }
+  }
+}
 
 int login() {
   char input_User_name[USER_SIZE + 1];
   char input_Password[PASSWORD_SIZE + 1];
   int login_check = 0, c;
+
+  initSH();
 
   system("clear");
 
@@ -57,19 +87,23 @@ int login() {
 int menu() {
   char option;
   int first = 1, interval = 10;
-  int total = get_product_count();
+  int total;
   int ID, quantity;
+
+  adminFlag = 0;
 
   while (1) {
     Product *list_product = (Product *)malloc(sizeof(Product));
+    total = get_product_count();
 
-    printf("=============== Bienvenido %s ===============\n", current_user.user_name);
+    printf("=============== Bienvenido %s a IC Store ===============\n", current_user.user_name);
     printf("Articulos %d - %d / %d\n", first, first + interval - 1, total);
 
-    for (int i = 0; i < interval; i++) {
-      get_product(list_product, i + first);
-      if (i + first <= total)
+    for (int i = first - 1; i < first + interval - 1; i++) {
+      if (i < total){
+        get_nth_product(list_product, i);
         printf("%d  %s  %s  $%d\n", list_product->ID, list_product->name, list_product->description, list_product->price);
+      }
     }
 
     printf("\n1. Agregar al carrito\n");
@@ -192,9 +226,16 @@ int cart() {
 int admin_menu() {
   int access = 0;
   int ID, price;
+  int adminUpdateSHMID;
+  int *ADMIN_UPDATE;
   char product_name[21], description[101];
   char user_name[USER_SIZE], password[PASSWORD_SIZE];
   char option;
+
+  adminFlag = 1;
+
+  adminUpdateSHMID = shmget(ADMIN_UPDATE_KEY, sizeof(int), IPC_CREAT | 0666);
+  ADMIN_UPDATE = (int*)shmat(adminUpdateSHMID, NULL, 0);
 
   while (1) {
     printf("=============== Panel de Administrador ===============\n");
@@ -244,6 +285,8 @@ int admin_menu() {
       add_product(ID, product_name, description, price);
       system("clear");
       printf("Producto agregado exitosamente a la base de datos!\n\n");
+
+      *ADMIN_UPDATE = -1;
     } else if (option == '2') {
       system("clear");
       printf("Ingrese el nombre del Usuario [%d caracteres max]: ", USER_SIZE);
@@ -288,6 +331,8 @@ int admin_menu() {
 
       system("clear");
       printf("Producto eliminado exitosamente!\n\n");
+
+      *ADMIN_UPDATE = -1;
     } else if (option == '4') {
       system("clear");
       printf("Ingrese el nombre del usuario: ");
@@ -305,8 +350,12 @@ int admin_menu() {
 
       system("clear");
       printf("Usuario eliminado exitosamente!\n\n");
-    } else if (option == '5')
+
+      *ADMIN_UPDATE = -1;
+    } else if (option == '5'){
+      adminFlag = 0;
       return 0;
+    }
     else
       system("clear");
   }

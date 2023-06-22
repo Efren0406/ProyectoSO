@@ -3,9 +3,12 @@
 
 #include "const.h"
 
+void initSH();
+
 int get_user(User* current_user, const char* user_name, const char* password);
 
 Product* get_product(Product* current_product, int ID);	
+Product* get_nth_product(Product* current_product, int i);
 
 int* get_cart_item(const int cart_ID, int* item_ID, int* quantity, int index);	
 
