@@ -36,11 +36,11 @@ void userListener(void) {
       else if(!strcmp(filename, "products"))
         strcpy(fileDir, "../database/products.txt");
 
-      printf("Solicitud de acceso a: %s, %s\n", fileDir, filename);
+      printf("\x1b[33mSolicitud de acceso a: %s, %s\x1b[0m\n", fileDir, filename);
 
       *NEW_ACCESS = 0;
     }else if(*NEW_ACCESS == 2){
-      printf("\nUsuario desconectado!\n");
+      printf("\n\x1b[31mUsuario desconectado!\x1b[0m\n");
       *USER_COUNT -= 1;
       *NEW_ACCESS = 0;
 

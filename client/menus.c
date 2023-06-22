@@ -25,9 +25,9 @@ void serverListener(void){
 
   while(1){
     if(*ADMIN_UPDATE > 0 && myFlag && !adminFlag){
-      printf("\n\nEl administrador actualizo la base de datos!\n");
+      printf("\n\n\x1b[93mEl administrador actualizo la base de datos!\n");
       printf("Puede que lo mostrado en pantalla no este actualizado!\n");
-      printf("Si se encuentra en el menu elija la opcion 3 o 4\n");
+      printf("Presione <Enter> para actualizar\x1b[0m\n");
 
       *ADMIN_UPDATE -= 1;
       myFlag = 0;
@@ -35,6 +35,11 @@ void serverListener(void){
 
     if(*ADMIN_UPDATE == 0){
       myFlag = 1;
+    }
+
+    if(*ADMIN_UPDATE == -2){
+      printf("\n\n\n\x1b[91m***El servidor ha sido apagado, intentelo más tarde!***\x1b[0m\n");
+      exit(1);
     }
   }
 }
@@ -49,24 +54,24 @@ int login() {
   system("clear");
 
   while (1) {
-    printf("\x1b[33m=============== Iniciar Sesion ================\x1b[0m\n");
-    printf("\x1b[34mIngrese el nombre de usuario: \x1b[0m");
+    printf("\x1b[93m=============== Iniciar Sesion ================\x1b[0m\n");
+    printf("\x1b[94mIngrese el nombre de usuario: \x1b[0m");
     scanf("%s", input_User_name);
 
     if(strlen(input_User_name) > USER_SIZE){
       while((c = getchar()) != '\n' && c != EOF);
       system("clear");
-      printf("\x1b[31mEl nombre de usuario no debe superar los 20 caracteres!\x1b[0m\n\n");
+      printf("\x1b[91mEl nombre de usuario no debe superar los 20 caracteres!\x1b[0m\n\n");
       continue;
     }
 
-    printf("\x1b[34mIngrese la contrase%ca: \x1b[0m", 164);
+    printf("\x1b[94mIngrese la contrase%ca: \x1b[0m", 164);
     scanf("%s", input_Password);
 
     if(strlen(input_Password) > PASSWORD_SIZE){
       while((c = getchar()) != '\n' && c != EOF);
       system("clear");
-      printf("\x1b[31mLa contraseña no debe superar los 20 caracteres!\x1b[0m\n\n");
+      printf("\x1b[91mLa contraseña no debe superar los 20 caracteres!\x1b[0m\n\n");
       continue;
     }
 
@@ -79,7 +84,7 @@ int login() {
       return login_check;
     } else {
       system("clear");
-      printf("\x1b[32mUsuario o contraseña incorrectos D:\x1b[0m\n\n");
+      printf("\x1b[92mUsuario o contraseña incorrectos D:\x1b[0m\n\n");
     }
   }
 }
@@ -96,7 +101,7 @@ int menu() {
     Product *list_product = (Product *)malloc(sizeof(Product));
     total = get_product_count();
 
-    printf("=============== Bienvenido %s a IC Store ===============\n", current_user.user_name);
+    printf("\x1b[96m]=============== Bienvenido %s a IC Store ===============\x1b[0m\n", current_user.user_name);
     printf("Articulos %d - %d / %d\n", first, first + interval - 1, total);
 
     for (int i = first - 1; i < first + interval - 1; i++) {
@@ -110,9 +115,10 @@ int menu() {
     printf("2. Ir al carrito\n");
     printf("3. Siguiente pagina\n");
     printf("4. Pagina Anterior\n");
-    printf("5. Cerrar sesion\n");
+    printf("\x1b[31m5. Cerrar sesion\x1b[0m\n");
 
     option = getchar();
+    getchar();
 
     if (option == '1') {
       system("clear");
@@ -130,11 +136,11 @@ int menu() {
           add_cart_item(current_user.ID_cart, ID, quantity);
         } else {
           system("clear");
-          printf("\nEl producto que se indico no existe, intentar de nuevo!\n");
+          printf("\n\x1b[91mEl producto que se indico no existe, intentar de nuevo!\x1b[0m\n");
         }
       }else{
         system("clear");
-        printf("El ID y la cantidad deben ser valores positivos!\n\n");
+        printf("\x1b[91mEl ID y la cantidad deben ser valores positivos!\x1b[0m\n\n");
       }
     } else if (option == '2') {
       system("clear");
@@ -163,7 +169,7 @@ int cart() {
 
   while (1) {
     total = get_cart_count(current_user.ID_cart);
-    printf("=============== Tu carrito %s ===============\n", current_user.user_name);
+    printf("\x1b[96m=============== Tu carrito %s ===============\x1b[0m\n", current_user.user_name);
 
     if (total > 0) {
       Product *cart_item = (Product *)malloc(sizeof(Product));
@@ -197,11 +203,11 @@ int cart() {
           if (cart_item->ID == ID) {
             add_cart_item(current_user.ID_cart, ID, -quantity);
           } else {
-            printf("\nEl producto que indico no existe, intentar de nuevo!\n");
+            printf("\n\x1b[91mEl producto que indico no existe, intentar de nuevo!\x1b[0m\n");
           }
         }else{
           system("clear");
-          printf("El ID y la cantidad deben ser valores positivos!\n\n");
+          printf("\x1b[91mEl ID y la cantidad deben ser valores positivos!\x1b[0m\n\n");
         }
       } else if (option == '2') {
         getchar();
@@ -211,7 +217,7 @@ int cart() {
 
       free(cart_item);
     } else {
-      printf("Tu carrito esta vacio!\nAgrega productos en el menu principal\n");
+      printf("\x1b[93mTu carrito esta vacio!\nAgrega productos en el menu principal\x1b[0m\n");
 
       printf("\nPresione <Enter> para regresar\n");
 
@@ -258,7 +264,7 @@ int admin_menu() {
 
       if(ID < 0 || price < 0){
         system("clear");
-        printf("El ID y el precio deben ser valores positivos!\n\n");
+        printf("\x1b[91mEl ID y el precio deben ser valores positivos!\x1b[0m\n\n");
         continue;
       }
 
@@ -268,7 +274,7 @@ int admin_menu() {
 
       if(strlen(product_name) > USER_SIZE){
         system("clear");
-        printf("El nombre del producto no debe ser mayor a 20 caracteres!\n\n");
+        printf("\x1b[91mEl nombre del producto no debe ser mayor a 20 caracteres!\x1b[0m\n\n");
         continue;
       }
 
@@ -284,7 +290,7 @@ int admin_menu() {
 
       add_product(ID, product_name, description, price);
       system("clear");
-      printf("Producto agregado exitosamente a la base de datos!\n\n");
+      printf("\x1b[92mProducto agregado exitosamente a la base de datos!\x1b[0m\n\n");
 
       *ADMIN_UPDATE = -1;
     } else if (option == '2') {
@@ -295,7 +301,7 @@ int admin_menu() {
 
       if(strlen(user_name) > USER_SIZE){
         system("clear");
-        printf("El nombre de usuario no debe superar los 20 caracteres!\n\n");
+        printf("\x1b[91mEl nombre de usuario no debe superar los 20 caracteres!\x1b[0m\n\n");
         continue;
       }
 
@@ -305,7 +311,7 @@ int admin_menu() {
 
       if(strlen(password) > USER_SIZE){
         system("clear");
-        printf("La contraseña no debe superar los 20 caracteres!\n\n");
+        printf("\x1b[91mLa contraseña no debe superar los 20 caracteres!\x1b[0m\n\n");
         continue;
       }
 
@@ -314,7 +320,7 @@ int admin_menu() {
       add_user(user_name, password);
 
       system("clear");
-      printf("Usuario agregado exitosamente a la base de datos!\n\n");
+      printf("\x1b[92mUsuario agregado exitosamente a la base de datos!\x1b[0m\n\n");
     } else if (option == '3') {
       system("clear");
       printf("Ingrese el ID del producto: ");
@@ -323,14 +329,14 @@ int admin_menu() {
 
       if(ID < 0){
         system("clear");
-        printf("El ID debe ser un valor positivo!\n\n");
+        printf("\x1b[91mEl ID debe ser un valor positivo!\x1b[0m\n\n");
         continue;
       }
 
       add_product(-ID, "", "", 0);
 
       system("clear");
-      printf("Producto eliminado exitosamente!\n\n");
+      printf("\x1b[92mProducto eliminado exitosamente!\x1b[0m\n\n");
 
       *ADMIN_UPDATE = -1;
     } else if (option == '4') {
@@ -341,7 +347,7 @@ int admin_menu() {
 
       if(strlen(user_name) > USER_SIZE){
         system("clear");
-        printf("El nombre de usuario no debe superar los 20 caracteres!\n\n");
+        printf("\x1b[91mEl nombre de usuario no debe superar los 20 caracteres!\x1b[0m\n\n");
         continue;
       }
 
@@ -349,7 +355,7 @@ int admin_menu() {
       add_user(user_name, "delete");
 
       system("clear");
-      printf("Usuario eliminado exitosamente!\n\n");
+      printf("\x1b[92mUsuario eliminado exitosamente!\x1b[0m\n\n");
 
       *ADMIN_UPDATE = -1;
     } else if (option == '5'){

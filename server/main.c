@@ -16,28 +16,26 @@ void interruptionHandler(int sig){
 
     signal(sig, SIG_IGN);
 
-    printf("\n\nServidor en Pausa\n");
-    printf("Todas los usuarios perderan conexión!!!\n");
+    printf("\n\n\x1b[31mServidor en Pausa\n");
+    printf("Todas los usuarios perderan conexión!!!\x1b[0m\n");
     printf("Esta seguro de apagar el servidor? [y / n]\n");
 
     c = getchar();
 
-    if(c == 'y' || c == 'Y')
-        exit(1);
-    else{
-        int newUserSHMID, userCountSHMID, adminUpdateSHMID;
-        int *NEW_USER, *USER_COUNT, *ADMIN_UPDATE;
+    if(c == 'y' || c == 'Y'){
+        int adminUpdateSHMID;
+        int *ADMIN_UPDATE;
 
-        newUserSHMID = shmget(NEW_USER_FLAG, sizeof(int), IPC_CREAT | 0666);
-        userCountSHMID = shmget(USER_COUNT_KEY, sizeof(int), IPC_CREAT | 0666);
         adminUpdateSHMID = shmget(ADMIN_UPDATE_KEY, sizeof(int), IPC_CREAT | 0666);
 
-        shmctl(newUserSHMID, IPC_RMID, NULL);
-        shmctl(userCountSHMID, IPC_RMID, NULL);
-        shmctl(adminUpdateSHMID, IPC_RMID, NULL);
+        ADMIN_UPDATE = (int*)shmat(adminUpdateSHMID, NULL, 0);
 
+        *ADMIN_UPDATE = -2;
+
+        exit(1);
+    }else{
         system("clear");
-        printf("\nServidor reanudado!\n");
+        printf("\n\x1b[32mServidor reanudado!\x1b[0m\n");
         printf("Esperando usuarios...\n\n");
 
         signal(SIGINT, interruptionHandler);
@@ -50,7 +48,7 @@ void main(){
     signal(SIGINT, interruptionHandler);
 
     system("clear");
-    printf("Iniciando Servidor...\n");
+    printf("\x1b[94mIniciando Servidor...\x1b[0m\n");
 
     int newUserSHMID, userCountSHMID, adminUpdateSHMID;
     int *NEW_USER, *USER_COUNT, *ADMIN_UPDATE;
@@ -69,16 +67,16 @@ void main(){
     *USER_COUNT = 0;
     *ADMIN_UPDATE = 0;
 
-    printf("Servidor Listo!...\n");
-    printf("ID del servidor %d\n", getpid());
+    printf("\x1b[32mServidor Listo!...\x1b[0m\n");
+    printf("\x1b[95mID del servidor %d\x1b[0m\n", getpid());
     printf("Esperando Usuarios...\n");
 
     do{
         if(*NEW_USER){
             firstFlag = 1;
 
-            printf("\nNuevo usuario contectado!\n");
-            printf("Acceso otorgado\n");        
+            printf("\n\x1b[32mNuevo usuario contectado!\n");
+            printf("Acceso otorgado\x1b[0m\n");        
 
             if(*USER_COUNT == 0)
                 pthread_create(&threadid, NULL, (void*)userListener, NULL);
@@ -86,19 +84,19 @@ void main(){
             *NEW_USER = 0;
             *USER_COUNT += 1;
 
-            printf("\nNúmero de usuarios conectados: %d\n", *USER_COUNT);
+            printf("Número de usuarios conectados: %d\n", *USER_COUNT);
         }
 
         if(*USER_COUNT == 0 && firstFlag){
             system("clear");
-            printf("Todos los usuarios desconectados!\n");
+            printf("\x1b[33mTodos los usuarios desconectados!\x1b[0m\n");
             printf("Esperando nuevas conexiones...\n");
 
             firstFlag = 0;
         }
 
         if(*ADMIN_UPDATE == -1){
-            printf("\nBase de datos actualizada por el administrador!\n\n");
+            printf("\n\x1b[95mBase de datos actualizada por el administrador!\x1b[0m\n\n");
             printf("Mostrando actualizaciones a usuarios...\n");
 
             *ADMIN_UPDATE = *USER_COUNT - 1;
