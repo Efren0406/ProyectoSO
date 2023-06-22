@@ -15,17 +15,18 @@ FILE* requestDB(const char *nombretxt){
   char* DB_name;
   sem_t* SEM;
 
+    printf("(ya)");
   SEM = sem_open(CLIENT_SEMAPHORE_NAME, 0600, 0);
 
   filenameSHMID = shmget(FILENAME_MEMORY_KEY, sizeof(char), IPC_CREAT | 0666);
-  fileSHMID = shmget(FILE_MEMORY_KEY, sizeof(FILE), IPC_CREAT | 0666);
+  fileSHMID = shmget(FILE_MEMORY_KEY, sizeof(FILE*), IPC_CREAT | 0666);
 
   DB_name = (char*)shmat(filenameSHMID, NULL, 0);
   fp = (FILE*)shmat(fileSHMID, NULL, 0);
 
   strcpy(DB_name, nombretxt);
 
-  sem_post(SEM);
+//   sem_post(SEM);
   
   return fp;
 }

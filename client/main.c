@@ -1,15 +1,19 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <semaphore.h>
+#include <sys/shm.h>
 
 #include "../lib/menus.h"
 #include "../lib/server.h"
 
 int main() {    
-    int state = 0;
-    sem_t *SEM = sem_open(SERVER_SEMAPHORE_NAME, O_CREAT, 0600, 0);
+    int state = 0, newUserSHMID;
+    int *newUserFlag;
 
-    sem_post(SEM);
+    newUserSHMID = shmget(NEW_USER_FLAG, sizeof(int), IPC_CREAT | 0666);
+    newUserFlag = (int*)shmat(newUserSHMID, NULL, 0);
+
+    *newUserFlag = 1;
 
     while(1){
         if(state == -1){

@@ -2,10 +2,12 @@
 #include <sys/shm.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <fcntl.h>
 #include <pthread.h>
 #include <semaphore.h>
 #include <signal.h>
+#include <string.h>
 
 #include "../lib/server.h"
 
@@ -41,29 +43,28 @@ void main(){
     system("clear");
     printf("Iniciando Servidor...\n");
 
-    pthread_attr_t atributes;
-    pthread_t ID[MAX_USER_COUNT];
-    int fileSHMID, i = 0, filenameSHMID;
+    int newUserSHMID, fileSHMID, filenameSHMID;
+    int *NEW_USER;
     sem_t *SEM;    
-    pthread_attr_init(&atributes);
-    pthread_attr_setdetachstate(&atributes, PTHREAD_CREATE_DETACHED);    
 
-    fileSHMID = shmget(FILE_MEMORY_KEY, sizeof(FILE), IPC_CREAT | 0666);
+    newUserSHMID = shmget(NEW_USER_FLAG, sizeof(int), IPC_CREAT | 0666);
+    fileSHMID = shmget(FILE_MEMORY_KEY, sizeof(FILE*), IPC_CREAT | 0666);
     filenameSHMID = shmget(FILENAME_MEMORY_KEY, sizeof(char), IPC_CREAT | 0666);
 
-    SEM = sem_open(SERVER_SEMAPHORE_NAME, O_CREAT, 0600, 0);
+    NEW_USER = (int*)shmat(newUserSHMID, NULL, 0);
+
+    *NEW_USER = 0;
 
     printf("Servidor Listo!...\n");
     printf("Esperando Usuarios...\n");
 
     do{
-        sem_wait(SEM);
-
-        printf("Nuevo usuario contectado!\n");
-        printf("Acceso otorgado\n");        
-
-        pthread_create(&ID[i], &atributes, (void*)userListener, NULL);             i++;
-    } while(!shutDownFlag);
+        if(*NEW_USER){
+            printf("\nNuevo usuario contectado!\n");
+            printf("Acceso otorgado\n");        
+            *NEW_USER = 0;
+        }
+    } while(1);
 
     sem_destroy(SEM);
     

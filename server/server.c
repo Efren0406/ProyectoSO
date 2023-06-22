@@ -18,7 +18,7 @@ void userListener(void) {
   SEM = sem_open(CLIENT_SEMAPHORE_NAME, O_CREAT, 0600, 0);
 
   fileSHMID = shmget(FILE_MEMORY_KEY, sizeof(FILE), IPC_CREAT | 0666);
-  filenameSHMID = shmget(FILE_MEMORY_KEY, sizeof(char), IPC_CREAT | 0666);
+  filenameSHMID = shmget(FILENAME_MEMORY_KEY, sizeof(char), IPC_CREAT | 0666);
 
   database = (FILE *)shmat(fileSHMID, NULL, 0);
   filename = (char *)shmat(filenameSHMID, NULL, 0);
