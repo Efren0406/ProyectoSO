@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <semaphore.h>
-
+#include <fcntl.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
 
@@ -11,6 +11,7 @@
 
 int *NEW_ACCESS;
 char *DB_name, *DB_dir;
+sem_t *SEM;
 
 void initSH(){
     int fileDirSHMID, filenameSHMID, newAccessSHMID;
@@ -22,6 +23,8 @@ void initSH(){
     DB_name = (char*)shmat(filenameSHMID, NULL, 0);
     DB_dir = (char*)shmat(fileDirSHMID, NULL, 0);
     NEW_ACCESS = (int*)shmat(newAccessSHMID, NULL, 0);
+
+    SEM = sem_open(DB_SEMAPHORE_NAME, O_CREAT, 0600, 0);
 }
 
 FILE* requestDB(const char *nombretxt){
@@ -39,6 +42,7 @@ FILE* requestDB(const char *nombretxt){
 }
 
 int get_user(User* current_user, const char* user_name, const char* password){
+    sem_post(SEM);
     FILE* fp = requestDB("users");
   
     if(VALID_PTR(fp)){
@@ -58,10 +62,12 @@ int get_user(User* current_user, const char* user_name, const char* password){
     }
 
     fclose(fp);
+    sem_wait(SEM);
     return 0;
 }
 
 Product* get_product(Product* current_product, int ID){	
+    sem_post(SEM);
 	FILE* fp = requestDB("products");
 
     if(VALID_PTR(fp)){
@@ -75,9 +81,11 @@ Product* get_product(Product* current_product, int ID){
 	}
 
 	fclose(fp);
+    sem_wait(SEM);
 };
 
 Product* get_nth_product(Product* current_product, int i){	
+    sem_post(SEM);
 	FILE* fp = requestDB("products");
     int index = 0;
 
@@ -94,9 +102,11 @@ Product* get_nth_product(Product* current_product, int i){
 	}
 
 	fclose(fp);
+    sem_wait(SEM);
 };
 
 int get_product_count(){
+    sem_post(SEM);
     FILE* fp = requestDB("products");
     Product aux;
     int count = 0;
@@ -106,11 +116,13 @@ int get_product_count(){
     }
 
     fclose(fp);
+    sem_wait(SEM);
 
     return count;
 }
 
 int get_cart_count(const int ID_cart){
+    sem_post(SEM);
     FILE* fp = requestDB("cart");
 
     if(VALID_PTR(fp)){
@@ -127,10 +139,12 @@ int get_cart_count(const int ID_cart){
     }
     
     fclose(fp);
+    sem_wait(SEM);
     return count;
 }
 
 void add_cart_item(const int ID_cart, const int Item_ID, const int quantity){
+    sem_post(SEM);
     FILE* fp = requestDB("cart");
     FILE *temp = fopen("../database/temp.txt", "a");
     cart_Item aux;
@@ -161,9 +175,11 @@ void add_cart_item(const int ID_cart, const int Item_ID, const int quantity){
 
     remove("../database/cart.txt");
     rename("../database/temp.txt", "../database/cart.txt");
+    sem_wait(SEM);
 }
 
 int get_user_ID_cart(const char *user_name){
+    sem_post(SEM);
     FILE* fp = requestDB("users");
     User current_user;
 
@@ -175,10 +191,12 @@ int get_user_ID_cart(const char *user_name){
     }
 
     fclose(fp);
+    sem_wait(SEM);
 }
 
 void delete_cart(const char* name){
     int ID_cart = get_user_ID_cart(name);
+    sem_post(SEM);
     FILE* fp = requestDB("cart");
     FILE *temp = fopen("../database/temp.txt", "a");
     cart_Item aux;
@@ -196,9 +214,11 @@ void delete_cart(const char* name){
 
     remove("../database/cart.txt");
     rename("../database/temp.txt", "../database/cart.txt");
+    sem_wait(SEM);
 }
 
 int* get_cart_item(const int cart_ID, int* item_ID, int* quantity, int index){
+    sem_post(SEM);
     FILE *fp = requestDB("cart");
     cart_Item aux;
 
@@ -216,9 +236,11 @@ int* get_cart_item(const int cart_ID, int* item_ID, int* quantity, int index){
     }
 
     fclose(fp);
+    sem_wait(SEM);
 }	
 
 void add_product(const int ID, const char* name, const char* description, const int price){
+    sem_post(SEM);
     FILE* fp = requestDB("products");
     FILE *temp = fopen("../database/temp.txt", "a");
     Product aux;
@@ -257,9 +279,11 @@ void add_product(const int ID, const char* name, const char* description, const 
 
     remove("../database/products.txt");
     rename("../database/temp.txt", "../database/products.txt");
+    sem_wait(SEM);
 }
 
 void add_user(const char* name, const char* password){
+    sem_post(SEM);
     FILE* fp = requestDB("users");
     FILE *temp = fopen("../database/temp.txt", "a");
     User aux;
@@ -296,4 +320,5 @@ void add_user(const char* name, const char* password){
 
     remove("../database/users.txt");
     rename("../database/temp.txt", "../database/users.txt");
+    sem_wait(SEM);
 }

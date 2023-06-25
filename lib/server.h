@@ -9,6 +9,8 @@
 #define NEW_USER_FLAG 34884
 #define NEW_ACCESS_FLAG 1292
 
+#define DB_SEMAPHORE_NAME "IC store"
+
 void userListener(void);
 
 #endif

@@ -118,7 +118,6 @@ int menu() {
     printf("\x1b[31m5. Cerrar sesion\x1b[0m\n");
 
     option = getchar();
-    getchar();
 
     if (option == '1') {
       system("clear");
